@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Theater.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">movie-theater</a> &gt; <a href="index.source.html" class="el_package">com.jpmc.theater</a> &gt; <span class="el_source">Theater.java</span></div><h1>Theater.java</h1><pre class="source lang-java linenums">package com.jpmc.theater;
+
+import com.jpmc.theater.utils.SpecialCode;
+
+import javax.sound.sampled.ReverbType;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+public class Theater {
+
+    LocalDateProvider provider;
+    public Map&lt;Integer, Showing&gt; schedule;
+    public LocalDate currDate;
+    public Map&lt;String, Reservation&gt; reservationMap;
+
+<span class="fc" id="L23">    public Theater(LocalDateProvider provider) {</span>
+<span class="fc" id="L24">        this.provider = provider;</span>
+<span class="fc" id="L25">        this.schedule = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L26">        this.currDate = provider.currentDate();</span>
+<span class="fc" id="L27">        this.reservationMap = new HashMap&lt;&gt;();</span>
+
+        // init movies
+<span class="fc" id="L30">        Movie spiderMan = new Movie(&quot;Spider-Man: No Way Home&quot;, Duration.ofMinutes(90), 12.5, SpecialCode.SPECIAL);</span>
+<span class="fc" id="L31">        Movie turningRed = new Movie(&quot;Turning Red&quot;, Duration.ofMinutes(85), 11, SpecialCode.NONE);</span>
+<span class="fc" id="L32">        Movie theBatMan = new Movie(&quot;The Batman&quot;, Duration.ofMinutes(95), 9, SpecialCode.NONE);</span>
+
+        // init schedule map
+<span class="fc" id="L35">        schedule.put(1, new Showing(turningRed, 1, generateStartTime(9, 0)));</span>
+<span class="fc" id="L36">        schedule.put(2, new Showing(spiderMan, 2, generateStartTime(11, 0)));</span>
+<span class="fc" id="L37">        schedule.put(3, new Showing(theBatMan, 3, generateStartTime(12, 50)));</span>
+<span class="fc" id="L38">        schedule.put(4, new Showing(turningRed, 4, generateStartTime(14, 30)));</span>
+<span class="fc" id="L39">        schedule.put(5, new Showing(spiderMan, 5, generateStartTime(16, 10)));</span>
+<span class="fc" id="L40">        schedule.put(6, new Showing(theBatMan, 6, generateStartTime(17, 50)));</span>
+<span class="fc" id="L41">        schedule.put(7, new Showing(turningRed, 7, generateStartTime(19, 30)));</span>
+<span class="fc" id="L42">        schedule.put(8, new Showing(spiderMan, 8, generateStartTime(21, 10)));</span>
+<span class="fc" id="L43">        schedule.put(9, new Showing(theBatMan, 9, generateStartTime(23, 0)));</span>
+<span class="fc" id="L44">    }</span>
+
+    public Optional&lt;Reservation&gt; getReservationById(String id) {
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        if (reservationMap.containsKey(id)) {</span>
+<span class="fc" id="L48">            return Optional.of(reservationMap.get(id));</span>
+<span class="nc" id="L49">        } else return Optional.empty();</span>
+    }
+
+    public LocalDateTime generateStartTime(int hour, int minute) {
+<span class="fc" id="L53">        return LocalDateTime.of(this.currDate, LocalTime.of(hour, minute));</span>
+    }
+
+    public Optional&lt;Reservation&gt; reserve(Customer customer, int sequence, int audienceCount) {
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (schedule.containsKey(sequence)) {</span>
+<span class="fc" id="L58">            Showing showing = schedule.get(sequence);</span>
+<span class="fc" id="L59">            Reservation rev = new Reservation(customer, showing, audienceCount);</span>
+<span class="fc" id="L60">            reservationMap.put(rev.id, rev);</span>
+<span class="fc" id="L61">            return Optional.of(rev);</span>
+<span class="nc" id="L62">        } else return Optional.empty();</span>
+    }
+
+    public void printSchedule() {
+<span class="fc" id="L66">        System.out.println(currDate);</span>
+<span class="fc" id="L67">        System.out.println(&quot;===================================================&quot;);</span>
+<span class="fc" id="L68">        schedule.forEach((key, s) -&gt; System.out.println(s.toDisplayable()));</span>
+<span class="fc" id="L69">        System.out.println(&quot;===================================================&quot;);</span>
+<span class="fc" id="L70">    }</span>
+
+    public void printScheduleJsonFmt() {
+<span class="fc" id="L73">        System.out.println(currDate);</span>
+<span class="fc" id="L74">        System.out.println(&quot;===================================================&quot;);</span>
+
+<span class="fc" id="L76">        schedule.forEach((key, s) -&gt; System.out.println(s.toDisplayableJson()));</span>
+<span class="fc" id="L77">        System.out.println(&quot;===================================================&quot;);</span>
+<span class="fc" id="L78">    }</span>
+
+
+    public Optional&lt;Showing&gt; getShowingBySeq(int seq) {
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (schedule.containsKey(seq)) {</span>
+<span class="fc" id="L83">            return Optional.of(schedule.get(seq));</span>
+<span class="nc" id="L84">        } else return Optional.empty();</span>
+    }
+
+    public static void main(String[] args) {
+<span class="nc" id="L88">        Theater theater = new Theater(LocalDateProvider.singleton());</span>
+<span class="nc" id="L89">        theater.printSchedule();</span>
+<span class="nc" id="L90">        theater.printScheduleJsonFmt();</span>
+
+<span class="nc" id="L92">        theater.getShowingBySeq(2).ifPresent(showing -&gt; System.out.println(showing.calculateFee(1)));</span>
+<span class="nc" id="L93">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
