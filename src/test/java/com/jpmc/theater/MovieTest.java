@@ -76,7 +76,7 @@ public class MovieTest {
     }
 
     @Test
-    void equals_ShouldReturnTrue_WhenMoviesAreEqual() {
+    void equalsShouldReturnTrueWhenMoviesAreEqual() {
         // Arrange
         Movie movie1 = new Movie("Spider-Man: No Way Home", Duration.ofMinutes(150), 12.5, SpecialCode.SPECIAL);
         Movie movie2 = new Movie("Spider-Man: No Way Home", Duration.ofMinutes(150), 12.5, SpecialCode.SPECIAL);
@@ -89,7 +89,7 @@ public class MovieTest {
     }
 
     @Test
-    void equals_ShouldReturnFalse_WhenMoviesAreNotEqual() {
+    void equalsShouldReturnFalseWhenMoviesAreNotEqual() {
         // Arrange
         Movie movie1 = new Movie("Spider-Man: No Way Home", Duration.ofMinutes(150), 12.5, SpecialCode.SPECIAL);
         Movie movie2 = new Movie("The Batman", Duration.ofMinutes(120), 10.0, SpecialCode.NONE);
@@ -102,7 +102,7 @@ public class MovieTest {
     }
 
     @Test
-    void equals_ShouldReturnFalse_WhenObjectIsNotMovie() {
+    void equalsShouldReturnFalseWhenObjectIsNotMovie() {
         // Arrange
         Movie movie = new Movie("Spider-Man: No Way Home", Duration.ofMinutes(150), 12.5, SpecialCode.SPECIAL);
         String otherObject = "This is not a Movie object";
@@ -115,7 +115,7 @@ public class MovieTest {
     }
 
     @Test
-    void equals_ShouldReturnFalse_WhenMovieIsNull() {
+    void equalsShouldReturnFalseWhenMovieIsNull() {
         // Arrange
         Movie movie = new Movie("Spider-Man: No Way Home", Duration.ofMinutes(150), 12.5, SpecialCode.SPECIAL);
 
