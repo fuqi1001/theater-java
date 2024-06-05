@@ -21,28 +21,9 @@ for node in $nodes; do
   fi
   
   # 获取已分配的 CPU 和内存
-  allocated_cpu=0
-  allocated_memory=0
-  
-  pods=$(kubectl get pods --all-namespaces -o json | jq -r ".items[] | select(.spec.nodeName==\"$node\") | .spec.containers[] | .resources.requests.cpu, .resources.requests.memory")
-  
-  while IFS= read -r line; do
-    if [[ $line == *"m" ]]; then
-      allocated_cpu=$(($allocated_cpu + ${line%m}))
-    else
-      allocated_cpu=$(($allocated_cpu + $line * 1000))
-    fi
-  done <<< "$(echo "$pods" | sed -n '1~2p')"
-  
-  while IFS= read -r line; do
-    if [[ $line == *"Ki" ]]; then
-      allocated_memory=$(($allocated_memory + ${line%Ki}))
-    elif [[ $line == *"Mi" ]]; then
-      allocated_memory=$(($allocated_memory + ${line%Mi} * 1024))
-    elif [[ $line == *"Gi" ]]; then
-      allocated_memory=$(($allocated_memory + ${line%Gi} * 1024 * 1024))
-    fi
-  done <<< "$(echo "$pods" | sed -n '2~2p')"
+  allocated_resources=$(kubectl describe node $node | awk '/Allocated resources/,/events/')
+  allocated_cpu=$(echo "$allocated_resources" | grep -m 1 "cpu" | awk '{print $3}' | sed 's/m//')
+  allocated_memory=$(echo "$allocated_resources" | grep -m 1 "memory" | awk '{print $3}' | sed 's/Ki//')
   
   # 计算剩余的 CPU 和内存
   free_cpu=$(($allocatable_cpu_m - $allocated_cpu))
