@@ -13,40 +13,47 @@ parameters:
 - name: resourceGroup
   displayName: Select Resource Group
   type: string
-  default: ''
-  values: []
-
-variables:
-  resourceGroups_A: |
-    group1
-    group2
-    group3
-  resourceGroups_B: |
-    group4
-    group5
-    group6
+  default: 'resourceGroup1'
+  values:
+    - 'resourceGroup1'
+    - 'resourceGroup2'
+    - 'resourceGroup3'
+    - 'resourceGroup4'
+    - 'resourceGroup5'
 
 jobs:
-- job: SelectResourceGroup
-  displayName: 'Select Resource Group'
+- job: ValidateParameters
+  displayName: 'Validate Parameters'
   pool:
     vmImage: 'ubuntu-latest'
   steps:
   - script: |
-      if [ '${{ parameters.subscription }}' == 'A' ]; then
-        echo "##vso[task.setvariable variable=resourceGroups;isOutput=true]${{ variables.resourceGroups_A }}"
+      echo "Selected Subscription: ${{ parameters.subscription }}"
+      echo "Selected Resource Group: ${{ parameters.resourceGroup }}"
+
+      if [ "${{ parameters.subscription }}" == "A" ]; then
+        VALID_RESOURCE_GROUPS=("resourceGroup1" "resourceGroup2" "resourceGroup3")
+      elif [ "${{ parameters.subscription }}" == "B" ]; then
+        VALID_RESOURCE_GROUPS=("resourceGroup4" "resourceGroup5")
       else
-        echo "##vso[task.setvariable variable=resourceGroups;isOutput=true]${{ variables.resourceGroups_B }}"
+        echo "Invalid subscription selected."
+        exit 1
       fi
-    name: SetResourceGroups
+
+      if [[ " ${VALID_RESOURCE_GROUPS[@]} " =~ " ${{ parameters.resourceGroup }} " ]]; then
+        echo "Selected resource group is valid for the chosen subscription."
+      else
+        echo "Selected resource group is NOT valid for the chosen subscription."
+        exit 1
+      fi
+    displayName: 'Validate Selected Parameters'
 
 - job: DeployPgBouncer
   displayName: 'Deploy pgBouncer'
-  dependsOn: SelectResourceGroup
+  dependsOn: ValidateParameters
+  condition: succeeded()
   pool:
     vmImage: 'ubuntu-latest'
-  variables:
-    resourceGroups: $[ dependencies.SelectResourceGroup.outputs['SetResourceGroups.resourceGroups'] ]
   steps:
   - script: |
       echo "Deploying pgBouncer to subscription: ${{ parameters.subscription }}"
