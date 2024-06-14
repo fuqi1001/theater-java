@@ -1,0 +1,63 @@
+trigger:
+- main
+
+parameters:
+- name: subscription
+  displayName: Select Azure Subscription
+  type: string
+  default: 'A'
+  values:
+    - 'A'
+    - 'B'
+
+- name: resourceGroup
+  displayName: Select Resource Group
+  type: string
+  default: ''
+  values: []
+
+variables:
+  resourceGroups_A: |
+    group1
+    group2
+    group3
+  resourceGroups_B: |
+    group4
+    group5
+    group6
+
+jobs:
+- job: SelectResourceGroup
+  displayName: 'Select Resource Group'
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script: |
+      if [ '${{ parameters.subscription }}' == 'A' ]; then
+        echo "##vso[task.setvariable variable=resourceGroups;isOutput=true]${{ variables.resourceGroups_A }}"
+      else
+        echo "##vso[task.setvariable variable=resourceGroups;isOutput=true]${{ variables.resourceGroups_B }}"
+      fi
+    name: SetResourceGroups
+
+- job: DeployPgBouncer
+  displayName: 'Deploy pgBouncer'
+  dependsOn: SelectResourceGroup
+  pool:
+    vmImage: 'ubuntu-latest'
+  variables:
+    resourceGroups: $[ dependencies.SelectResourceGroup.outputs['SetResourceGroups.resourceGroups'] ]
+  steps:
+  - script: |
+      echo "Deploying pgBouncer to subscription: ${{ parameters.subscription }}"
+      echo "Resource Group: ${{ parameters.resourceGroup }}"
+    displayName: 'Echo Parameters'
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: ${{ parameters.subscription }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        # Add your pgBouncer deployment script here
+        echo "Deploying pgBouncer..."
+        # Example: az deployment group create --resource-group ${{ parameters.resourceGroup }} --template-file your-template-file.json --parameters your-parameters
