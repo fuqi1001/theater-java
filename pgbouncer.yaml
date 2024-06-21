@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config
+  labels:
+    app: pgbouncer
+data:
+  pgbouncer.ini: |
+    [databases]
+    mydatabase = host=postgresql-service port=5432 dbname=mydatabase
+
+    [pgbouncer]
+    listen_addr = *
+    listen_port = 6432
+    auth_type = any
+    auth_file = /etc/pgbouncer/users.txt
+    admin_users = admin
+    pool_mode = transaction
+    server_reset_query = DISCARD ALL
+    max_client_conn = 100
+
+  users.txt: |
+    "admin" "md5passwordhash"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  labels:
+    app: pgbouncer
+spec:
+  ports:
+    - port: 6432
+      targetPort: 6432
+  selector:
+    app: pgbouncer
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pgbouncer
+  labels:
+    app: pgbouncer
+spec:
+  serviceName: pgbouncer
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgbouncer
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+    spec:
+      containers:
+      - name: pgbouncer
+        image: edoburu/pgbouncer:latest
+        ports:
+        - containerPort: 6432
+        volumeMounts:
+        - name: pgbouncer-config
+          mountPath: /etc/pgbouncer
+      volumes:
+      - name: pgbouncer-config
+        configMap:
+          name: pgbouncer-config
